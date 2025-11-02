@@ -1,0 +1,16 @@
+<root>
+    <minor>1</minor>
+    <major>4</major>
+    <compact>true</compact>
+    <samples>8</samples>
+    <width>800</width>
+    <height>600</height>
+    <maximize>false</maximize>
+    <fullscreen>false</fullscreen>
+    <experimental>true</experimental>
+    <lockCamera>false</lockCamera>
+    <orthoCamera>false</orthoCamera>
+    <cameraStep>0.2</cameraStep>
+    <cameraPosition x="0" y="30" z="-10"/>
+    <background r = "0" g = "0" b = "0" a = "1"/>
+</root>

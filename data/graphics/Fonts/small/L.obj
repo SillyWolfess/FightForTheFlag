@@ -1,0 +1,12 @@
+# Blender v2.73 (sub 0) OBJ File: 'b.blend'
+# www.blender.org
+mtllib l.mtl
+o B
+v -0.000469 0.682816 -0.150339
+v -0.000353 0.682339 -0.061340
+v -0.000085 0.000349 -0.064999
+v -0.000201 0.000826 -0.153998
+usemtl None
+s off
+f 3 1 2
+f 3 4 1

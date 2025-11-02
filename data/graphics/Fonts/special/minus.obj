@@ -1,0 +1,12 @@
+# Blender v2.73 (sub 0) OBJ File: 'minus.blend'
+# www.blender.org
+mtllib minus.mtl
+o B
+v -0.000475 0.268514 -0.281563
+v -0.000157 0.267211 -0.038567
+v -0.000121 0.174212 -0.039066
+v -0.000438 0.175516 -0.282062
+usemtl None
+s off
+f 3 1 2
+f 3 4 1

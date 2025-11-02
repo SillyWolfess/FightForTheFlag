@@ -1,0 +1,4 @@
+<root>
+    <player1>./data/simulation/player1.xml</player1>
+    <projectile>./data/simulation/projectile.xml</projectile>
+</root>

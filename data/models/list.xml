@@ -1,0 +1,4 @@
+<root>
+    <prefab_square>./data/models/prefab_square.xml</prefab_square>
+    <player1>./data/models/player1.xml</player1>
+</root>
