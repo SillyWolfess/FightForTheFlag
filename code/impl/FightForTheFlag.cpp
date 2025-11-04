@@ -13,11 +13,6 @@
 bool FFF::FightForTheFlag::init() {
     _objectId = -1;
     _eventSource = "fightForTheflag";
-    LIA::Camera &camera = LIA::Engine::getInstance().getMainCamera();
-    LIA::Position cameraPosition = camera.getPosition();
-    cameraPosition.y = cameraPosition.y + 50;
-    camera.setPosition(cameraPosition);
-    camera.setLocked(true);
     return true;
 }
 
@@ -66,15 +61,15 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
     player->_physics._force.x = 0;
     player->_physics._force.z = 0;
     if (LIA::AppWindow::isKeyPressed(_eventSource, 'A')) {
-        player->_rotation.y = LIA::Math::toRadians(90);
-        player->_physics._force.x = +moveSpeed;
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'D')) {
-        player->_physics._force.x = -moveSpeed;
         player->_rotation.y = LIA::Math::toRadians(-90);
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'S')) {
+        player->_physics._force.x = -moveSpeed;
+    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'D')) {
+        player->_physics._force.x = +moveSpeed;
+        player->_rotation.y = LIA::Math::toRadians(90);
+    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'W')) {
         player->_physics._force.z = -moveSpeed;
         player->_rotation.y = LIA::Math::toRadians(180);
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'W')) {
+    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'S')) {
         player->_physics._force.z = +moveSpeed;
         player->_rotation.y = 0;
     }

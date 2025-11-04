@@ -1,5 +1,6 @@
 <root>
     <prefab_square>./data/objects/prefab_square.xml</prefab_square>
     <player1>./data/objects/player1.xml</player1>
+    <player2>./data/objects/player2.xml</player2>
     <projectile>./data/objects/projectile.xml</projectile>
 </root>

@@ -1,0 +1,6 @@
+<root>
+    <name>player2</name>
+    <folder>./data/graphics/player/</folder>
+    <path>./data/graphics/player/player2.obj</path>
+    <shader>advanced</shader>
+</root>

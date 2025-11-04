@@ -1,4 +1,5 @@
 <root>
     <player1>./data/simulation/player1.xml</player1>
+    <player2>./data/simulation/player2.xml</player2>
     <projectile>./data/simulation/projectile.xml</projectile>
 </root>

@@ -5,10 +5,4 @@
     <down>=</down>
     <forward>W</forward>
     <backward>S</backward>
-    <!--
-    <up>W</up>
-    <down>S</down>
-    <forward>-</forward>
-    <backward>=</backward>
-    -->
 </root>

@@ -1,6 +1,9 @@
 <root>
     <!-- light -->
     <light type="light">./data/light/light.xml</light>
+    <player2 type="object">./data/simulation/player2.xml</player2>
+    <player3 type="object">./data/simulation/player3.xml</player3>
+    <player4 type="object">./data/simulation/player4.xml</player4>
     <!--
     <pointl type="light">./data/light/point.xml</pointl>
     <f
