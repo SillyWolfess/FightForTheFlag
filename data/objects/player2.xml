@@ -1,4 +1,5 @@
 <root>
     <name>player2</name>
-    <model>player2</model>
+    <model>player1</model>
+    <materialLib>player_red</materialLib>
 </root>
