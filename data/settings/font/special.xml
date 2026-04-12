@@ -9,4 +9,5 @@
     <questionMark ascii="63">./data/graphics/Fonts/special/questionMark.obj</questionMark>
     <slash ascii="47">./data/graphics/Fonts/special/slash.obj</slash>
     <comma ascii="44">./data/graphics/Fonts/special/comma.obj</comma>
+    <equals ascii="61">./data/graphics/Fonts/special/equals.obj</equals>
 </root>

@@ -5,4 +5,5 @@
     <topBar>./data/gui/data/topBar.xml</topBar>
     <settings>./data//gui/data/settings.xml</settings>
     <debugInfo>./data/gui/data/debugInfo.xml</debugInfo>
+    <keyMapping>./data/gui/data/keyMapping.xml</keyMapping>
 </root>

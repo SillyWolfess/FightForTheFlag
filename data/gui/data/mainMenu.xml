@@ -9,10 +9,8 @@
         <button0 type="button" action="start_simulation" arg0="" id="new" name="New"/>
         <button2 type="button" action="toggle_window" arg0="settings" id="settings" name = "Settings"/>
         <button3 type="button" action="toggle_window" arg0="debug" id="debug" name = "Debug info"/>
-        <!--
-        <button type="button" action="open_window" arg0="bottom_bar" id="bottom_bar" name="bottom Bar"/>
-        -->
-        <button4 type="button" action="exit" id="exit" name = "Exit"/>
+        <button4 type="button" action="toggle_window" arg0="keyMapping" id="keyMapping" name = "Key mapping"/>
+        <button5 type="button" action="exit" id="exit" name = "Exit"/>
     </children>
     <visible>true</visible>
 </root>

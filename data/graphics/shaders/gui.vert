@@ -10,4 +10,3 @@ void main()
 {
 	gl_Position = MVP * vec4 (vertex_position, 1);
 }
-

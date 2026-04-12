@@ -7,6 +7,8 @@
     <header visible="false" size="20" />
     <children>
         <fps type="field" id="fps" label="FPS" placeholder = "fps" x = "0" y = "0"/>
+        <lastKey type="field" id="last_key_code" label="last ascii" placeholder=""/>
+        <lastKey type="field" id="last_key" label="last Key" placeholder=""/>
         <cameraLabel type="label" id="cameraLabel" value="Camera"/>
         <camera type="field" id="camera_position" label="pos"/>
         <lookAt type="field" id="camera_lookAt" label="eye"/>
