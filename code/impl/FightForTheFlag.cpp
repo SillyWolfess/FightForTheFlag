@@ -13,6 +13,16 @@
 bool FFF::FightForTheFlag::init() {
     _objectId = -1;
     _eventSource = "fightForTheflag";
+    LIA_TRY
+        if (!getKeybindingManager()->registerControls("player", "./data/settings/controls/player.xml", true)) {
+            LIA_fatal("Failed to register controls for player");
+            return false;
+        }
+        if (!getKeybindingManager()->load("player")) {
+            LIA_fatal("Failed to load player controls");
+            return false;
+        }
+    LIA_CATCH_RETURN_FALSE
     return true;
 }
 
@@ -60,21 +70,25 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
     
     player->_physics._force.x = 0;
     player->_physics._force.z = 0;
-    if (LIA::AppWindow::isKeyPressed(_eventSource, 'A')) {
+    
+    LIA::KeybindingManager *keyBindingManager = getKeybindingManager();
+    LIA::KeybindingControls &playerControls = keyBindingManager->getControls("player");
+
+    if (LIA::AppWindow::isKeyPressed("player", playerControls.get("left"))) {
         player->_rotation.y = LIA::Math::toRadians(-90);
         player->_physics._force.x = -moveSpeed;
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'D')) {
+    } else if (LIA::AppWindow::isKeyPressed("player", playerControls.get("right"))) {
         player->_physics._force.x = +moveSpeed;
         player->_rotation.y = LIA::Math::toRadians(90);
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'W')) {
+    } else if (LIA::AppWindow::isKeyPressed("player", playerControls.get("forward"))) {
         player->_physics._force.z = -moveSpeed;
         player->_rotation.y = LIA::Math::toRadians(180);
-    } else if (LIA::AppWindow::isKeyPressed(_eventSource, 'S')) {
+    } else if (LIA::AppWindow::isKeyPressed("player", playerControls.get("backward"))) {
         player->_physics._force.z = +moveSpeed;
         player->_rotation.y = 0;
     }
     
-    if (LIA::AppWindow::isKeyPressed(_eventSource, 'Q')) {
+    if (LIA::AppWindow::isKeyPressed("player", playerControls.get("fire"))) {
         if (!_wasShootingPressed) {
             std::string projectileName = std::vformat("projectile[{}]", std::make_format_args(_lastProjectileId));
             if (!objectManager->createObject("projectile", projectileName)) {
