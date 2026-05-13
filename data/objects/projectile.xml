@@ -1,4 +1,4 @@
 <root>
     <name>projectile</name>
-    <model>prefab_square</model>
+    <model>prefab_cube</model>
 </root>

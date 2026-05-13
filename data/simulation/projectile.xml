@@ -1,6 +1,6 @@
 <root>
     <position x="0" y="0"/>
-    <scale x="5" y="5" z="5"/>
+    <scale x="0.05" y="0.05" z="0.5"/>
     <rotation x="0" y="0" z="0"/>
     <object>projectile</object>
     <type>object</type>

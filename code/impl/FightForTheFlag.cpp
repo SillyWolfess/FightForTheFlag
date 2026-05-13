@@ -101,6 +101,17 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
             LIA::Object *projectile = objectManager->get(projectileId);
             LIA::copy(projectile->_position, player->_position);
             LIA::copy(projectile->_rotation, player->_rotation);
+            
+            LIA::applyForceByAngleXZ(projectile->_physics._force, projectile->_rotation.y, projectileSpeed);
+            /*
+            float a = projectile->_rotation.y;
+            float fx = LIA::Math::sinOf(a);
+            float fz = LIA::Math::cosOf(a);
+
+            projectile->_physics._force.x = projectileSpeed * fx;
+            projectile->_physics._force.z = projectileSpeed * fz;
+            */
+            _projectiles.emplace(std::pair<std::string, int>(projectileName, projectileId));
             LIA_debug_f("Projectile with identifier {} and id {} was created", projectileName, projectileId);
             _wasShootingPressed = true;
         }
@@ -110,5 +121,27 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
     // movement
     player->_position.x = player->_position.x + player->_physics._force.x;
     player->_position.z = player->_position.z + player->_physics._force.z;
+
+    std::vector<std::string> toRemove;
+    // remove dead projectiles from map
+    for (auto [name, id] : _projectiles) {
+        int newId = objectManager->getByName(id, name);
+        if (newId == -1) {
+            toRemove.push_back(name);
+            continue;
+        }
+        if (id != newId) {
+            _projectiles[name] = newId;
+        }
+    }
+    for (std::string name: toRemove) {
+        _projectiles.erase(name);
+    }
+    // move projectiles
+    for (auto [name, id] : _projectiles) {
+        LIA::Object *projectile = objectManager->get(id);
+        projectile->_position.x = projectile->_position.x + projectile->_physics._force.x;
+        projectile->_position.z = projectile->_position.z + projectile->_physics._force.z;
+    }
     return true;
 }

@@ -1,0 +1,6 @@
+<root>
+    <name>prefab_cube</name>
+    <folder>./data/graphics/prefabs/</folder>
+    <path>./data/graphics/prefabs/cube.obj</path>
+    <shader>simple</shader>
+</root>

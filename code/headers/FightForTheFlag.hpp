@@ -2,6 +2,7 @@
 #define INSPECTOR_HPP
 #include <component/BaseGame.hpp>
 #include <string>
+#include <map>
 
 namespace FFF {
     class FightForTheFlag : public LIA::BaseGame {
@@ -18,6 +19,7 @@ namespace FFF {
             int _lastProjectileId;
             std::string _eventSource;
             bool _wasShootingPressed;
+            std::map<std::string, int> _projectiles;
     };
 }
 #endif
