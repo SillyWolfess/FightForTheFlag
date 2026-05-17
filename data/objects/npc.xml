@@ -1,0 +1,5 @@
+<root>
+    <name>npc</name>
+    <model>player1</model>
+    <materialLib>player_red</materialLib>
+</root>

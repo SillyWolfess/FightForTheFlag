@@ -1,0 +1,14 @@
+<root>
+    <name>Ingame bottom bar</name>
+    <id>ingameBottomBar</id>
+    <position x = "0" y = "0" z = "-1"/>
+    <scale x = "100" y = "20"/>
+    <buttonScale x = "20" y = "20" />
+    <header visible="true" size="20"/>
+    <align>bottom</align>
+    <children>
+       <hits type="field" id="hits[player]" label="Hits player" placeholder = "0" x = "0" y = "0"/>
+       <hits type="field" id="hits[npc]" label="Hits npc" placeholder = "0" x = "0" y = "0"/>
+    </children>
+    <visible>true</visible>
+</root>

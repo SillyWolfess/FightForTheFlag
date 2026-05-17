@@ -2,6 +2,6 @@
     <locked>true</locked>
     <ortho>false</ortho>
     <step>0.2</step>
-    <position x="0" y="50" z="10"/>
+    <position x="0" y="150" z="10"/>
     <controls>./data/settings/controls/camera.xml</controls>
 </root>

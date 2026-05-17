@@ -9,10 +9,20 @@
 #include "data/Object.hpp"
 #include "Engine.hpp"
 #include "math/Math.hpp"
+#include "tools.hpp"
 
 bool FFF::FightForTheFlag::init() {
     _objectId = -1;
     _eventSource = "fightForTheflag";
+    _ingameBottomBar = "ingameBottomBar";
+    _wasShootingPressed = false;
+    _wasShootingPressedNpc= false;
+    LIA_TRY
+        if (!getGuiManager()->loadWindow(_ingameBottomBar, "./data/fff/gui/data/ingameBottomBar.xml")) {
+            LIA_error_f("Failed to init window for {}", _ingameBottomBar);
+            return false;
+        }
+    LIA_CATCH_RETURN_FALSE
     LIA_TRY
         if (!getKeybindingManager()->registerControls("player", "./data/settings/controls/player.xml", true)) {
             LIA_fatal("Failed to register controls for player");
@@ -20,6 +30,14 @@ bool FFF::FightForTheFlag::init() {
         }
         if (!getKeybindingManager()->load("player")) {
             LIA_fatal("Failed to load player controls");
+            return false;
+        }
+        if (!getKeybindingManager()->registerControls("npc", "./data/settings/controls/npc.xml", true)) {
+            LIA_fatal("Failed to register controls for npc");
+            return false;
+        }
+        if (!getKeybindingManager()->load("npc")) {
+            LIA_fatal("Failed to load npc controls");
             return false;
         }
     LIA_CATCH_RETURN_FALSE
@@ -55,8 +73,28 @@ bool FFF::FightForTheFlag::onLoad(LIA::Event& event) {
         LIA::Engine::getInstance().fatal();
         return true;
     }
-    _lastProjectileId = 0;
+    LIA_trace("Create npc");
+    if (!objectManager->createObject("npc", "npc[1]")) {
+        LIA_fatal("Failed t load npc[1]");
+        LIA::Engine::getInstance().fatal();
+        return true;
+    }
+    int npc1Id = objectManager->getByName(-1, "npc[1]");
+    _npcs.emplace(std::pair<std::string, int>("npc[1]", npc1Id));
+
+    _hits.emplace(std::pair<std::string, int>("npc[1]", 0));
+    _hits.emplace(std::pair<std::string, int>("player1", 0));
+    
+    LIA::Object *npc1 = objectManager->get(npc1Id);
+    npc1->_position.x = 50;
+    npc1->_position.y = 0;
+
+     _lastProjectileId = 0;
     _wasShootingPressed = false;
+    _wasShootingPressedNpc = false;
+
+    updateScoreUi("hits[player]", "player1");
+    updateScoreUi("hits[npc]", "npc1");
     return true;
 }
 
@@ -65,6 +103,7 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
     float moveSpeed = 0.2f;
     float projectileSpeed  = 0.5f;
     LIA::ObjectManager *objectManager = getObjectManager();
+    std::string playerNameId = "player1";
     _objectId = objectManager->getPlayer(_objectId);
     LIA::Object *player = objectManager->get(_objectId);
     
@@ -103,24 +142,138 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
             LIA::copy(projectile->_rotation, player->_rotation);
             
             LIA::applyForceByAngleXZ(projectile->_physics._force, projectile->_rotation.y, projectileSpeed);
-            /*
-            float a = projectile->_rotation.y;
-            float fx = LIA::Math::sinOf(a);
-            float fz = LIA::Math::cosOf(a);
 
-            projectile->_physics._force.x = projectileSpeed * fx;
-            projectile->_physics._force.z = projectileSpeed * fz;
-            */
             _projectiles.emplace(std::pair<std::string, int>(projectileName, projectileId));
-            LIA_debug_f("Projectile with identifier {} and id {} was created", projectileName, projectileId);
+            _projectileOwner.emplace(std::pair<std::string, std::string> (projectileName, playerNameId));
+            LIA_debug_f("Projectile [name = {} ,id = {}, owner = {}] was created", projectileName, projectileId, _projectileOwner[projectileName]);
             _wasShootingPressed = true;
         }
     } else {
         _wasShootingPressed = false;
     }
     // movement
+    LIA::Position prevPos = LIA::emptyPosition();
+    LIA::copy(prevPos, player->_position);
+
     player->_position.x = player->_position.x + player->_physics._force.x;
     player->_position.z = player->_position.z + player->_physics._force.z;
+    
+    float respawnRadius = 50;
+    float borderRadius = respawnRadius + 20;
+    bool playerCollided = false;
+    std::map<std::string, bool> npcCollidedMap;
+    std::map<std::string, LIA::Position> npcPrevPos;
+
+    // copy npc pos before moving them
+    for (auto [name, id]: _npcs) {
+        id = objectManager->getByName(id, name);
+        if (id == -1) {
+            continue;
+        }
+        npcCollidedMap.emplace(std::pair<std::string, bool>(name, false));
+        npcPrevPos.emplace(std::pair<std::string, LIA::Position>(name, objectManager->get(id)->_position));
+    }
+
+    // Two player game, second player controls npc
+    std::string pNpcName;
+    int pNpcId = -1;
+    for (auto [name, id]: _npcs) {
+        pNpcName = name;
+        pNpcId = id;
+        break;
+    }
+    LIA::KeybindingControls &npcControlls = keyBindingManager->getControls("npc");
+    pNpcId = objectManager->getByName(pNpcId, pNpcName);
+    LIA::Object *pNpc = objectManager->get(pNpcId);
+
+    pNpc->_physics._force.x = 0;
+    pNpc->_physics._force.z = 0;
+
+    if (LIA::AppWindow::isKeyPressed("npc", npcControlls.get("left"))) {
+        pNpc->_rotation.y = LIA::Math::toRadians(-90);
+        pNpc->_physics._force.x = -moveSpeed;
+    } else if (LIA::AppWindow::isKeyPressed("npc", npcControlls.get("right"))) {
+        pNpc->_physics._force.x = +moveSpeed;
+        pNpc->_rotation.y = LIA::Math::toRadians(90);
+    } else if (LIA::AppWindow::isKeyPressed("npc", npcControlls.get("forward"))) {
+        pNpc->_physics._force.z = -moveSpeed;
+        pNpc->_rotation.y = LIA::Math::toRadians(180);
+    } else if (LIA::AppWindow::isKeyPressed("npc", npcControlls.get("backward"))) {
+        pNpc->_physics._force.z = +moveSpeed;
+        pNpc->_rotation.y = 0;
+    }
+
+    if (LIA::AppWindow::isKeyPressed("npc", npcControlls.get("fire"))) {
+        if (!_wasShootingPressedNpc) {
+            std::string projectileName = std::vformat("projectile[{}]", std::make_format_args(_lastProjectileId));
+            if (!objectManager->createObject("projectile", projectileName)) {
+                LIA_fatal("Failed to load projectile");
+                LIA::Engine::getInstance().fatal();
+                return true;
+            }
+            _lastProjectileId++;
+            int projectileId = objectManager->getByName(-1, projectileName);
+            LIA::Object *projectile = objectManager->get(projectileId);
+            LIA::copy(projectile->_position, pNpc->_position);
+            LIA::copy(projectile->_rotation, pNpc->_rotation);
+            
+            LIA::applyForceByAngleXZ(projectile->_physics._force, projectile->_rotation.y, projectileSpeed);
+
+            _projectiles.emplace(std::pair<std::string, int>(projectileName, projectileId));
+            _projectileOwner.emplace(std::pair<std::string, std::string> (projectileName, pNpcName));
+            LIA_debug_f("Projectile [name = {} ,id = {}, owner = {}] was created", projectileName, projectileId, _projectileOwner[projectileName]);
+            _wasShootingPressedNpc = true;
+        }
+    } else {
+        _wasShootingPressedNpc = false;
+    }
+
+    // move npc and check collision with bounds
+    for (auto [name, id]: _npcs) {
+        id = objectManager->getByName(id, name);
+        if (id == -1) {
+            continue;
+        }
+        LIA::Object* npc = objectManager->get(id);
+        npc->_position.x = npc->_position.x + npc->_physics._force.x;
+        npc->_position.z = npc->_position.z + npc->_physics._force.z;
+
+        if (
+            npc->_position.x < -borderRadius || npc->_position.x > borderRadius ||
+            npc->_position.z < -borderRadius || npc->_position.z > borderRadius
+        ) {
+            LIA::copy(npc->_position, npcPrevPos[name]);
+            npcCollidedMap[name] = true;
+        }
+    }
+
+    // player collision with bounds
+    if (
+        player->_position.x < -borderRadius || player->_position.x > borderRadius ||
+        player->_position.z < -borderRadius || player->_position.z > borderRadius
+    ) {
+        LIA::copy(player->_position, prevPos);
+        playerCollided = true;
+    }
+
+    // player npc collision
+    for (auto [name, id]: _npcs) {
+        id = objectManager->getByName(id, name);
+        if (id == -1) {
+            continue;
+        }
+        LIA::Object *npc = objectManager->get(id);
+        if (isColliding(player, npc)) {
+            if (!playerCollided) {
+                LIA::copy(player->_position, prevPos);
+                playerCollided = true;
+            }
+            if (!npcCollidedMap[name]) {
+                LIA::copy(npc->_position, npcPrevPos[name]);
+                npcCollidedMap[name] = true;
+            }
+        }
+    }
 
     std::vector<std::string> toRemove;
     // remove dead projectiles from map
@@ -143,5 +296,120 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
         projectile->_position.x = projectile->_position.x + projectile->_physics._force.x;
         projectile->_position.z = projectile->_position.z + projectile->_physics._force.z;
     }
+
+    std::vector<std::string> toDeleteObjects;
+    std::vector<std::string> hitNpcs;
+    std::map<std::string, bool> wasHit;
+    bool hitPlayer = false;
+    // projectile collision
+    for (auto [name, id]: _projectiles) {
+        LIA::Object *projectile = objectManager->get(id);
+        // Check projectile is out of bounds
+        if (
+            projectile->_position.x < - respawnRadius * 2.0 || projectile->_position.x > respawnRadius * 2.0 ||
+            projectile->_position.z < - respawnRadius * 2.0 || projectile->_position.z > respawnRadius * 2.0 
+        ) {
+            toDeleteObjects.push_back(name);
+            continue;
+        }
+        // collide with player
+        if (!hitPlayer && !LIA::equals(playerNameId, _projectileOwner[name])) {
+            if (isColliding(projectile, player)) {
+                LIA_debug_f("{} is colliding with {} [projectile owner = {}]", name, playerNameId, _projectileOwner[name]);
+                // remove projectile
+                toDeleteObjects.push_back(name);
+                // hit player
+                _hits[_projectileOwner[name]]++;
+                hitPlayer = true;
+                continue;
+            }
+        }
+        // collide with npcs
+        for (auto [npcName, npcId]: _npcs) {
+            if (objectManager->getByName(npcId, npcName) == -1) {
+                continue;
+            }
+            std::string sName = npcName;
+            if (wasHit[npcName] || LIA::equals(sName, _projectileOwner[name])) {
+                continue;
+            }
+            LIA::Object *npc = objectManager->get(npcId);
+            if (isColliding(projectile, npc)) {
+                LIA_debug_f("{} is colliding with {} [projectile owner = {}]", name, npcName, _projectileOwner[name]);
+                // remove projectile
+                toDeleteObjects.push_back(name);
+                // hit npcs
+                hitNpcs.push_back(npcName);
+                _hits[_projectileOwner[name]]++;
+                wasHit.emplace(std::pair<std::string, bool>(npcName, true));
+                break;
+            }
+        }
+    }
+    // respawn player
+    if (hitPlayer) {
+        do {
+            player->_position.x = LIA::Math::getRandomInt(-respawnRadius, respawnRadius);
+            player->_position.z = LIA::Math::getRandomInt(-respawnRadius, respawnRadius);
+        } while (LIA::Math::isColliding(player, pNpc)); // TODO check collision with every object
+    }
+    // respawn hit npcs
+    for (auto name: hitNpcs) {
+        int id = _npcs[name];
+        if (objectManager->getByName(id, name) == -1) {
+            continue;
+        }
+        LIA::Object *npc = objectManager->get(id);
+        do {
+            npc->_position.x = LIA::Math::getRandomInt(-respawnRadius, respawnRadius);
+            npc->_position.z = LIA::Math::getRandomInt(-respawnRadius, respawnRadius);
+        } while (LIA::Math::isColliding(player, npc)); // TODO check collision with every object
+    }
+    // tell Engine to clean up
+    objectManager->remove(toDeleteObjects);
+    // update gui
+    updateScoreUi("hits[player]", playerNameId);
+    updateScoreUi("hits[npc]", pNpcName);
     return true;
+}
+
+void FFF::FightForTheFlag::updateScoreUi(std::string field, std::string owner) {
+    std::string hitsString = std::vformat("{}", std::make_format_args(_hits[owner]));
+    LIA::UpdateGuiStringEvent scoreStringEvent(_ingameBottomBar, field, hitsString);
+    getEventManager()->handleEvent(scoreStringEvent);
+}
+
+bool FFF::FightForTheFlag::isColliding(LIA::Object* target, LIA::Object* source) {
+    return isColliding(target, source->_position, source->_scale) || isColliding(source, target->_position, target->_scale);
+}
+
+bool FFF::FightForTheFlag::isColliding(LIA::Object* target, LIA::Position newPosition, LIA::Scale scale) {
+    const LIA::Position targetPos = target->_position;
+    const LIA::Scale targetScale = target->_scale;
+        
+    bool xLeft = LIA::Math::isInBounds(newPosition.x - scale.x, targetPos.x, targetScale.x);
+    bool xRight = LIA::Math::isInBounds(newPosition.x + scale.x, targetPos.x, targetScale.x);
+    bool yUp = LIA::Math::isInBounds(newPosition.z - scale.z, targetPos.z, targetScale.z);
+    bool yDown = LIA::Math::isInBounds(newPosition.z + scale.z, targetPos.z, targetScale.z);
+/*
+    LIA_trace_f("target {}: [{} x {}] , [{} x {}]", target->_name, targetPos.x, targetPos.z, targetScale.x, targetScale.z);
+    LIA_trace_f("position, scale: [{} x {}], [{} x {}]", newPosition.x, newPosition.z, scale.x, scale.z);
+    LIA_trace_f("collision {}, {}, {}, {}", xLeft, xRight, yUp, yDown);
+*/
+    if (!xLeft && !xRight && !yUp && !yDown) {
+        return false;
+    }
+    if (yUp || yDown) {
+        if (!xLeft && !xRight) {
+              return false;
+        }     
+        return true;
+    }
+    if (xLeft || xRight) {
+        if (!yUp && !yDown) {
+               return false;
+        }
+        return true;
+    }
+    return false;
 }
