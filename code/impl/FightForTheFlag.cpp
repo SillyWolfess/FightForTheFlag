@@ -95,6 +95,7 @@ bool FFF::FightForTheFlag::onLoad(LIA::Event& event) {
 
     updateScoreUi("hits[player]", "player1");
     updateScoreUi("hits[npc]", "npc1");
+    getGuiManager()->openWindow(_ingameBottomBar);
     return true;
 }
 
