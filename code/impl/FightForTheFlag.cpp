@@ -15,11 +15,19 @@ bool FFF::FightForTheFlag::init() {
     _objectId = -1;
     _eventSource = "fightForTheflag";
     _ingameBottomBar = "ingameBottomBar";
-    _wasShootingPressed = false;
-    _wasShootingPressedNpc= false;
     LIA_TRY
         if (!getGuiManager()->loadWindow(_ingameBottomBar, "./data/fff/gui/data/ingameBottomBar.xml")) {
             LIA_error_f("Failed to init window for {}", _ingameBottomBar);
+            return false;
+        }
+    LIA_CATCH_RETURN_FALSE
+    LIA_TRY
+        if (!getGuiManager()->loadWindow("ffLostWindow", "./data/fff/gui/data/ffLostWindow.xml")) {
+            LIA_error("Failed to init ffLostWindow");
+            return false;
+        }
+        if (!getGuiManager()->loadWindow("ffWonWindow", "./data/fff/gui/data/ffWonWindow.xml")) {
+            LIA_error("Failed to init ffWonWindow");
             return false;
         }
     LIA_CATCH_RETURN_FALSE
@@ -80,8 +88,10 @@ bool FFF::FightForTheFlag::onLoad(LIA::Event& event) {
         return true;
     }
     int npc1Id = objectManager->getByName(-1, "npc[1]");
+    _npcs.clear();
     _npcs.emplace(std::pair<std::string, int>("npc[1]", npc1Id));
 
+    _hits.clear();
     _hits.emplace(std::pair<std::string, int>("npc[1]", 0));
     _hits.emplace(std::pair<std::string, int>("player1", 0));
     
@@ -89,6 +99,8 @@ bool FFF::FightForTheFlag::onLoad(LIA::Event& event) {
     npc1->_position.x = 50;
     npc1->_position.y = 0;
 
+    _projectiles.clear();
+    _projectileOwner.clear();
      _lastProjectileId = 0;
     _wasShootingPressed = false;
     _wasShootingPressedNpc = false;
@@ -371,7 +383,29 @@ bool FFF::FightForTheFlag::onTick(LIA::Event& event) {
     // update gui
     updateScoreUi("hits[player]", playerNameId);
     updateScoreUi("hits[npc]", pNpcName);
+    checkWinLoss(playerNameId, pNpcName);
     return true;
+}
+
+void FFF::FightForTheFlag::hideCustomIngameWindows() {
+    getGuiManager()->closeWindow(_ingameBottomBar);
+}
+
+void FFF::FightForTheFlag::checkWinLoss(std::string &playerName, std::string &npcName) {
+    if (_hits[playerName] >= _winCondition) {
+        LIA_info("game won");
+        LIA::GameWonEvent gameWonEvent("ffWonWindow");
+        getEventManager()->handleEvent(gameWonEvent);
+        hideCustomIngameWindows();
+        return; 
+    }
+    if (_hits[npcName] >= _winCondition) {
+        LIA_info("game lost");
+        LIA::GameLostEvent gameLostEvent("ffLostWindow");
+        getEventManager()->handleEvent(gameLostEvent);
+        hideCustomIngameWindows();
+        return;
+    }
 }
 
 void FFF::FightForTheFlag::updateScoreUi(std::string field, std::string owner) {

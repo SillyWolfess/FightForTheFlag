@@ -1,0 +1,15 @@
+<root>
+    <name>End Game</name>
+    <id>ffWonWindow</id>
+    <position x = "120" y = "0" z = "-1"/>
+    <scale x = "300" y = "20"/>
+    <buttonScale x = "250" y = "20" />
+    <header visible="false" size="20" />
+    <initAlign>center</initAlign>
+    <children>
+        <label type="label" id="label" value="You won"/>
+        <button3 type="button" action="open_main_menu" id="open_main_menu" name = "Back to menu" x = "0" y = "40"/>
+        <button4 type="button" action="exit" id="exit" name = "Exit" x = "0" y = "60"/>
+    </childrens>
+    <visible>false</visible>
+</root>

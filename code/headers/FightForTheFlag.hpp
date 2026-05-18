@@ -22,6 +22,7 @@ namespace FFF {
             int _objectId;
             int _materialId;
             int _lastProjectileId;
+            int _winCondition;
             std::string _eventSource;
             
             bool _wasShootingPressed;
@@ -38,6 +39,9 @@ namespace FFF {
             bool isColliding(LIA::Object* target, LIA::Position newPosition, LIA::Scale scale);
             bool isColliding(LIA::Object* target, LIA::Object* source);
             void updateScoreUi(std::string field, std::string owner);
+
+            void checkWinLoss(std::string& playerName, std::string& npcName);
+            void hideCustomIngameWindows();
     };
 }
 #endif
