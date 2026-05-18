@@ -45,11 +45,11 @@ bool FFF::FightForTheFlag::init() {
 }
 
 bool FFF::FightForTheFlag::registerHandlers() {
-    if (!subscribe("load")) {
+    if (!subscribe(LIA::ComponentEvent::LOAD)) {
         LIA_fatal("Failed to subscribe to load event");
         return false;
     }
-    if (!subscribe("tick")) {
+    if (!subscribe(LIA::ComponentEvent::TICK)) {
         LIA_fatal("Failed to subscribe to tick event");
         return false;
     }
