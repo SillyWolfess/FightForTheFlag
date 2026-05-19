@@ -6,6 +6,10 @@
 #include <data/position.hpp>
 #include <data/Object.hpp>
 
+#include "Collision.hpp"
+#include "Controls.hpp"
+#include "Projectiles.hpp"
+
 namespace FFF {
     class FightForTheFlag : public LIA::BaseGame {
         public:
@@ -16,28 +20,27 @@ namespace FFF {
             virtual bool onLoad(LIA::Event&);
             virtual bool onTick(LIA::Event&);
         private:
+            Collision _collision;
+            Controls _controls;
+            Projectiles _projectiles;
+
             // gui
             std::string _ingameBottomBar;
             // data
             int _objectId;
             int _materialId;
-            int _lastProjectileId;
             int _winCondition;
             std::string _eventSource;
             
             bool _wasShootingPressed;
             bool _wasShootingPressedNpc;
             
-            std::map<std::string, int> _projectiles;
             std::map<std::string, int> _npcs;
-            std::map<std::string, std::string> _projectileOwner;
             
             // Score
             std::map<std::string, int> _hits;
             
             // Functions
-            bool isColliding(LIA::Object* target, LIA::Position newPosition, LIA::Scale scale);
-            bool isColliding(LIA::Object* target, LIA::Object* source);
             void updateScoreUi(std::string field, std::string owner);
 
             void checkWinLoss(std::string& playerName, std::string& npcName);
